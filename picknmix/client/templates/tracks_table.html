@@ -1,0 +1,16 @@
+<template name="TracksTable">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Track</th>
+        <th>Artist</th>
+        <th>BPM</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each tracks}}
+        {{> TrackTableRow}}
+      {{/each}}
+    </tbody>
+  </table>
+</template>
