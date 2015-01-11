@@ -84,7 +84,8 @@ class share.Player
     srcStop        = bufDuration
     srcDuration    = srcStop - srcStart
 
-    ctxStart       = @_nextStart ? @_ctx.currentTime + @_latencySec
+    ctxCurrent     = @_ctx.currentTime
+    ctxStart       = @_nextStart ? ctxCurrent + @_latencySec
     ctxMixInStop   = ctxStart + srcMixInStop
     ctxMixOutStart = ctxStart + srcMixOutStart
     ctxStop        = ctxStart + srcStop
@@ -106,12 +107,12 @@ class share.Player
 
     # Reschedule
     @_nextStart = ctxMixOutStart
-    delaySec = srcMixOutStart - @_latencySec
+    delaySec = ctxMixOutStart - ctxCurrent - @_latencySec
     @_timeoutId = Meteor.setTimeout @_schedule, 1000 * delaySec
 
     if @_debug
       console.log """
-        Current time: #{ @_ctx.currentTime.toFixed 1 }s
+        Current time: #{ ctxCurrent.toFixed 1 }s
         Scheduling delay: #{ delaySec.toFixed 1}s
         Next start time: #{ @_nextStart.toFixed 1 }s
         Track: #{ track.name }
