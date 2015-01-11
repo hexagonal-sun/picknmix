@@ -12,4 +12,4 @@ coffeescript
 fds:spotify-webapi
 reactive-var
 fds:coffeescript-share
-fds:beat-detector@0.0.5
+fds:beat-detector
