@@ -10,4 +10,5 @@ nemo64:bootstrap
 less
 coffeescript
 fds:spotify-webapi
-fds:beat-detector
+fds:beat-detector@0.0.2
+reactive-var

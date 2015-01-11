@@ -3,6 +3,7 @@ Template.Search.created = ->
   
 Template.Search.events
   'click #search-btn': (event, template) ->
+    event.preventDefault()
     {_api: api} = template
     searchText = template.$('#song-search').val()
     fut = api.search(searchText, types: api.TRACK)

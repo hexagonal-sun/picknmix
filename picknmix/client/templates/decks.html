@@ -1,4 +1,9 @@
 <template name="Decks">
-  <h1>Decks</h1>
-  {{> Search}}
+  <div class="row">
+    <div class="col-md-12">
+      <h1>Decks</h1>
+    </div>
+  </div>
+  {{> Player audioContext=audioContext}}
+  {{> Search audioContext=audioContext}}
 </template>

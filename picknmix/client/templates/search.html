@@ -1,7 +1,19 @@
 <template name="Search">
-  <input id="song-search">
-  <button id="search-btn">
-    Search
-  </button>
+  <div class="row">
+    <div class="col-md-12">
+      <form role="form" class="form-inline">
+        <div class="row">
+          <div class="col-md-2">
+            <input id="song-search" class="form-control">
+          </div>
+          <div class="col-md-2">
+            <button id="search-btn" class="btn btn-primary">
+              Search
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
   {{> TracksTable}}
 </template>

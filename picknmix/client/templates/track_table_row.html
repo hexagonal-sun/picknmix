@@ -1,15 +1,17 @@
 <template name="TrackTableRow">
-  <tr>
-    <td><a href="{{previewUrl}}" target="_blank">{{name}}</a></td>
-    <td>{{artist}}</td>
-    <td>
-      {{#if bpm}}
-        {{bpm}}
-      {{else}}
-        <button type="button" class="btn btn-primary">
-          Calculate
-        </button>
-      {{/if}}
-    </td>
-  </tr>
+  {{#with track}}
+    <tr>
+      <td><a href="{{previewUrl}}" target="_blank">{{name}}</a></td>
+      <td>{{artist}}</td>
+      <td>
+        {{#if bpm}}
+          {{bpm}}
+        {{else}}
+          <button type="button" class="btn btn-primary">
+            Calculate
+          </button>
+        {{/if}}
+      </td>
+    </tr>
+  {{/with}}
 </template>

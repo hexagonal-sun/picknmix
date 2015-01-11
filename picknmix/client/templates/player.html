@@ -1,0 +1,14 @@
+<template name="Player">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        Now playing
+      </h3>
+    </div>
+    <div class="panel-body">
+      {{#with currentTrack}}
+        {{name}} - {{artist}}
+      {{/with}}
+    </div>
+  </div>
+</template>
