@@ -1,3 +1,5 @@
+'use strict'
+
 Template.TrackTableRow.events
   'click button': (event, template) ->
     event.preventDefault()

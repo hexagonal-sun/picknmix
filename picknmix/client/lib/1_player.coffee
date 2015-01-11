@@ -3,7 +3,7 @@
 class share.Player
   constructor: (@_ctx, options = {}) ->
     @_computation   = null
-    @_nextStartTime = null
+    @_nextStart     = null
     @_timeoutId     = null
     @_track         = ReactiveVar()
     @_latencySec    = options.latency ? 0.1
@@ -15,6 +15,9 @@ class share.Player
 
   getBpm: =>
     @_bpm.get()
+
+  setBpm: (bpm) =>
+    @_bpm.set bpm
 
   getNumPlayBeats: =>
     @_numPlayBeats.get()
@@ -59,77 +62,77 @@ class share.Player
     unless (track = @_tryFindTrack())?
       @_trySchedule()
       return
+    @_track.set track
 
-    # Source buffer
-    sourceBuffer = Tracks.get track._id
+    playbackRate   = @getBpm() / track.bpm
 
-    # Playback rate
-    playbackRate = @getBpm() / track.bpm
+    getBufTimeAt   = (beatIndex) -> playbackRate * track.beats[beatIndex]
 
-    # Beats
-    startBeat = @getStartBeat()
-    stopBeat = @getStopBeat()
-    numMixBeats = @getNumMixBeats()
+    startBeat      = @getStartBeat()
+    stopBeat       = @getStopBeat()
+    numMixBeats    = @getNumMixBeats()
 
-    getOffsetAtBeat = (beatIndex) ->
-      playbackRate * track.beats[beatIndex]
+    bufStart       = getBufTimeAt startBeat
+    bufMixInStop   = getBufTimeAt startBeat + numMixBeats
+    bufMixOutStart = getBufTimeAt stopBeat - numMixBeats
+    bufStop        = getBufTimeAt stopBeat
+    bufDuration    = bufStop - bufStart
 
-    # Globa times
-    currentTime = @_ctx.currentTime
-    @_nextStartTimeSec ?= currentTime + @_latencySec
+    srcStart       = 0
+    srcMixInStop   = bufMixInStop - bufStart
+    srcMixOutStart = bufMixOutStart - bufStart
+    srcStop        = bufDuration
+    srcDuration    = srcStop - srcStart
 
-    # Source offsets, times and duration
-    sourceStartOffsetSec = getOffsetAtBeat startBeat
-    sourceStopOffsetSec = getOffsetAtBeat stopBeat
-    sourceStartTimeSec = @_nextStartTimeSec
-    sourceStopTimeSec = sourceStartTimeSec + sourceStopOffsetSec
-    sourceDurationSec = sourceStopOffsetSec - sourceStartOffsetSec
+    ctxStart       = @_nextStart ? @_ctx.currentTime + @_latencySec
+    ctxMixInStop   = ctxStart + srcMixInStop
+    ctxMixOutStart = ctxStart + srcMixOutStart
+    ctxStop        = ctxStart + srcStop
 
-    # Source mix-in and mix-out offsets and times
-    sourceMixInStopOffsetSec = getOffsetAtBeat startBeat + numMixBeats
-    sourceMixOutStartOffsetSec = getOffsetAtBeat stopBeat - numMixBeats
-    sourceMixInStopTimeSec = sourceStartTimeSec + sourceMixInStopOffsetSec - sourceStartOffsetSec
-    sourceMixOutStartTimeSec = sourceStartTimeSec + sourceMixOutStartOffsetSec - sourceStartOffsetSec
-
-    # Source
     source = @_ctx.createBufferSource()
-    source.buffer = sourceBuffer
+    source.buffer = Tracks.get track._id
     source.playbackRate.value = playbackRate
-    source.start sourceStartTimeSec, sourceStartOffsetSec, sourceDurationSec
+    source.start ctxStart, bufStart, srcDuration
 
-    # Gain
     gain = @_ctx.createGain()
     gain.gain.value = 0
-    gain.gain.setValueAtTime 0, sourceStartTimeSec
-    gain.gain.linearRampToValueAtTime 1, sourceMixInStopTimeSec
-    gain.gain.setValueAtTime 1, sourceMixOutStartTimeSec
-    gain.gain.linearRampToValueAtTime 0, sourceStopTimeSec
+    gain.gain.setValueAtTime 0, ctxStart
+    gain.gain.linearRampToValueAtTime 1, ctxMixInStop
+    gain.gain.setValueAtTime 1, ctxMixOutStart
+    gain.gain.linearRampToValueAtTime 0, ctxStop
 
-    # Connections
     source.connect gain
     gain.connect @_ctx.destination
 
     # Reschedule
-    @_nextStartTimeSec = sourceMixOutStartTimeSec
-    delaySec = sourceMixOutStartOffsetSec - sourceStartOffsetSec - @_latencySec
+    @_nextStart = ctxMixOutStart
+    delaySec = srcMixOutStart - @_latencySec
     @_timeoutId = Meteor.setTimeout @_schedule, 1000 * delaySec
 
     if @_debug
       console.log """
-        Current time: #{ currentTime }s
-        Next start time: #{ @_nextStartTimeSec }s
+        Current time: #{ @_ctx.currentTime.toFixed 1 }s
+        Scheduling delay: #{ delaySec.toFixed 1}s
+        Next start time: #{ @_nextStart.toFixed 1 }s
         Track: #{ track.name }
-          Source:
-            Offsets:
-              Start: #{ sourceStartOffsetSec }s
-              Stop: #{ sourceStopOffsetSec }s
-            Times:
-              Start: #{ sourceStartTimeSec }s
-              Mix-in stop: #{ sourceMixInStopTimeSec }s
-              Mix-out Start: #{ sourceMixOutStartTimeSec }s
-              Stop: #{ sourceStopTimeSec }s
-            Duration: #{ sourceDurationSec }s
-        """
+        Buffer:
+          Start: #{ bufStart.toFixed 1 }s
+          Mix-in Stop: #{ bufMixInStop.toFixed 1 }s
+          Mix-out Start: #{  bufMixOutStart.toFixed 1}s
+          Stop: #{ bufStop.toFixed 1 }s
+          Duration: #{ bufDuration.toFixed 1 }s
+        Source:
+          Start #{ srcStart.toFixed 1 }s
+          Mix-in Stop: #{ srcMixInStop.toFixed 1 }s
+          Mix-out Start: #{ srcMixOutStart.toFixed 1 }s
+          Stop: #{ srcStop.toFixed 1 }s
+          Duration: #{ srcDuration.toFixed 1 }s
+        Context:
+          Start: #{ ctxStart.toFixed 1 }s
+          Mix-in: #{ ctxMixInStop.toFixed 1 }s
+          Mix-out: #{ ctxMixOutStart.toFixed 1 }s
+          Stop: #{ ctxStop.toFixed 1 }s
+      """
 
   _tryFindTrack: =>
     cursor = Tracks.find
