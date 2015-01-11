@@ -66,7 +66,7 @@ class share.Player
 
     playbackRate   = @getBpm() / track.bpm
 
-    getBufTimeAt   = (beatIndex) -> playbackRate * track.beats[beatIndex]
+    getBufTimeAt   = (beatIndex) -> track.beats[beatIndex] / playbackRate
 
     startBeat      = @getStartBeat()
     stopBeat       = @getStopBeat()
