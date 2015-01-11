@@ -6,11 +6,10 @@ class share.Player
     @_nextStart     = null
     @_timeoutId     = null
     @_track         = ReactiveVar()
-    @_latencySec    = options.latency ? 0.1
     @_bpm           = ReactiveVar options.bpm ? 120
     @_startBeat     = ReactiveVar options.startBeat ? 2
     @_numPlayBeats  = ReactiveVar options.numPlayBeats ? 10
-    @_numMixBeats   = ReactiveVar options.numMixBeats ? 2
+    @_numMixBeats   = ReactiveVar options.numMixBeats ? 1
     @_debug         = options.debug ? false
 
   getBpm: =>
@@ -85,7 +84,7 @@ class share.Player
     srcDuration    = srcStop - srcStart
 
     ctxCurrent     = @_ctx.currentTime
-    ctxStart       = @_nextStart ? ctxCurrent + @_latencySec
+    ctxStart       = @_nextStart ? ctxCurrent
     ctxMixInStop   = ctxStart + srcMixInStop
     ctxMixOutStart = ctxStart + srcMixOutStart
     ctxStop        = ctxStart + srcStop
@@ -107,13 +106,13 @@ class share.Player
 
     # Reschedule
     @_nextStart = ctxMixOutStart
-    delaySec = ctxMixOutStart - ctxCurrent - @_latencySec
-    @_timeoutId = Meteor.setTimeout @_schedule, 1000 * delaySec
+    delay = ctxStart - ctxCurrent
+    @_timeoutId = Meteor.setTimeout @_schedule, 1000 * delay
 
     if @_debug
       console.log """
         Current time: #{ ctxCurrent.toFixed 1 }s
-        Scheduling delay: #{ delaySec.toFixed 1}s
+        Scheduling delay: #{ delay.toFixed 1}s
         Next start time: #{ @_nextStart.toFixed 1 }s
         Track: #{ track.name }
         Buffer:
