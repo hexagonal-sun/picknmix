@@ -1,6 +1,6 @@
 'use strict'
 
-Template.TrackTableRow.events
+Template.TracksTableRow.events
   'click button': (event, template) ->
     event.preventDefault()
     {track, audioContext} = template.data
