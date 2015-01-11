@@ -1,9 +1,13 @@
 <template name="TracksTableRow">
   {{#with track}}
     <tr>
-      <td><a href="{{previewUrl}}" target="_blank">{{name}}</a></td>
-      <td>{{artist}}</td>
-      <td>
+      <td class="track">
+        <a href="{{previewUrl}}" target="_blank">{{name}}</a>
+      </td>
+      <td class="artist">
+        {{artist}}
+      </td>
+      <td class="bpm">
         {{#if bpm}}
           {{bpm}}
         {{else}}
@@ -15,3 +19,4 @@
     </tr>
   {{/with}}
 </template>
+
