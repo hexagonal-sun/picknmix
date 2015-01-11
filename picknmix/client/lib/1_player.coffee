@@ -60,8 +60,10 @@ class share.Player
       @_trySchedule()
       return
 
+    @_track.set track
+
     # Source buffer
-    sourceBuffer = Tracks.get track._id
+    sourceBuffer = Tracks.get(track._id).getAudioSample().buffer
 
     # Playback rate
     playbackRate = @getBpm() / track.bpm

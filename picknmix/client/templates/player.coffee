@@ -4,6 +4,17 @@ Template.Player.created = ->
   @_player = new share.Player @data.audioContext
   @_player.enable()
 
+Template.Player.rendered = ->
+  @_beatVisualisation = new BeatDetector.Visualisation(
+    @find('#visualisation')
+    @data.audioContext
+  )
+  @autorun =>
+    track = @_player.getTrack()
+    return unless track?
+    beatManager = Tracks.get track._id
+    @_beatVisualisation.render(beatManager)
+
 Template.Player.destroyed = ->
   @_player.disable()
 
@@ -29,7 +40,8 @@ class Player
       query._id =
         $ne: currentTrack._id
 
-    cursor = Tracks.find query
+    cursor =
+    Tracks.find query
 
     return if cursor.count() == 0
     tracks = (t for t in cursor.fetch() when t.beats.length >= @_numBeats)

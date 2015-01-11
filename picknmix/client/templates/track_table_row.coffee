@@ -14,5 +14,5 @@ Template.TrackTableRow.events
           bpm: bpm
           beats: beats
           numBeats: beats.length
-      Tracks.set track._id, beatManager.getAudioSample().buffer
+      Tracks.set track._id, beatManager
 
