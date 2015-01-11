@@ -4,13 +4,15 @@ Template.TrackTableRow.events
     {track, audioContext} = template.data
     beatManager = new BeatDetector.BeatManager(audioContext)
     beatManager.fromUrl(track.previewUrl)
-    template.autorun (computation) -> 
+    template.autorun (computation) ->
       unless (bpm = beatManager.getCurrentBpm())?
         return
       computation.stop()
+      beats = beatManager.getBeats()
       Tracks.update track._id,
         $set:
           bpm: bpm
-          beats: beatManager.getBeats()
+          beats: beats
+          numBeats: beats.length
       Tracks.set track._id, beatManager.getAudioSample().buffer
 

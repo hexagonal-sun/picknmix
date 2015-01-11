@@ -1,14 +1,17 @@
+'use strict'
+
 Template.Player.created = ->
-  @_player = new Player @data.audioContext
-  @_player.start()
+  @_player = new share.Player @data.audioContext
+  @_player.enable()
 
 Template.Player.destroyed = ->
-  @_player.stop()
+  @_player.disable()
 
 Template.Player.helpers
   currentTrack: ->
-    Template.instance()._player.getCurrentTrack()
+    Template.instance()._player.getTrack()
 
+'''
 class Player
   constructor: (@_ctx) ->
     @_nextStartTime = null
@@ -38,7 +41,7 @@ class Player
       if @_findNextTrack()?
         computation.stop()
         @_main()
- 
+
   stop: =>
     @_comp.stop()
 
@@ -67,7 +70,8 @@ class Player
     endTime = track.beats[@_offsetBeats + @_numBeats - @_mixBeats] - startBeat
     gain.gain.setValueAtTime(1, @_nextStartTime + endTime)
     gain.gain.linearRampToValueAtTime(0, @_ctx.currentTime + duration)
-    
+
 
     @_nextStartTime += endTime
     Meteor.setTimeout(@_main, endTime * 1000 - 100)
+'''
