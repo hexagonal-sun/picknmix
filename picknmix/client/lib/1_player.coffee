@@ -90,7 +90,7 @@ class share.Player
     ctxStop        = ctxStart + srcStop
 
     source = @_ctx.createBufferSource()
-    source.buffer = Tracks.get track._id
+    source.buffer = Tracks.get(track._id).getAudioSample().buffer
     source.playbackRate.value = playbackRate
     source.start ctxStart, bufStart, srcDuration
 
