@@ -2,11 +2,12 @@
 
 class share.Scheduler
   constructor: (@_ctx) ->
-    @_computation  = Tracker.autorun @_trySchedule
     @_latency      = 0.1
     @_schedulers   = ReactiveVar []
     @_rescheduleId = null
     @_track        = ReactiveVar null
+
+    @_computation  = Tracker.autorun @_trySchedule
 
   disable: =>
     Meteor.clearTimeout @_timeoutId
@@ -16,13 +17,15 @@ class share.Scheduler
 
   getTrack: =>
     if _.isEmpty(trackSchedulers = @_schedulers.get())
-      return
-    current = @_ctx.getCurrentTime()
-    trackScheduler = _.min trackSchedulers, (ts) ->
-      Math.abs ts.getCtxStart() - current
-    trackScheduler.getTrack()
+      @_track.set null
+    else
+      current = @_ctx.getCurrentTime()
+      trackScheduler = _.min trackSchedulers, (ts) ->
+        Math.abs ts.getCtxStart() - current
+      trackScheduler.getTrack()
 
   _trySchedule: =>
+    Tracker.nonreactive @_pruneTrackSchedulers
     return unless (track = @_findTrack())?
     @_stopComputation()
     ctxStart = @_schedule track
@@ -42,7 +45,6 @@ class share.Scheduler
     ctxStart
 
   _findInitialCtxStart: =>
-    @_pruneTrackSchedulers()
     if (last = _.last @_schedulers.get())?
       last.getCtxMixOutStart()
     else
@@ -50,8 +52,9 @@ class share.Scheduler
 
   _pruneTrackSchedulers: =>
     schedulers = @_schedulers.get()
-    current = @_ctx.getCurrentTime()
-    @_schedulers.set(ts for ts in schedulers when ts.getCtxStop() > current)
+    unless _.isEmpty schedulers
+      current = @_ctx.getCurrentTime()
+      @_schedulers.set(ts for ts in schedulers when ts.getCtxStop() > current)
 
   _stopComputation: =>
     @_computation?.stop()
